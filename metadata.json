@@ -1,0 +1,5 @@
+{
+  "name": "MetricsLens",
+  "description": "An interactive, educational tool to demonstrate and teach key evaluation metrics for AI classification and segmentation tasks. Students can adjust thresholds and see real-time changes in confusion matrices, ROC curves, and other performance metrics.",
+  "requestFramePermissions": []
+}
