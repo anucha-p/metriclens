@@ -37,7 +37,7 @@ export const MetricTrendsChart: React.FC<MetricTrendsChartProps> = ({ data, curr
   return (
     <div className="bg-gray-800 p-4 rounded-xl border border-gray-700 h-[450px] flex flex-col animate-fade-in">
       <div className="relative mb-4">
-        <h3 className="text-lg font-bold text-center text-white">📊 Metric Trends vs. Threshold</h3>
+        <h3 className="text-lg font-bold text-center text-white">Metric Trends vs. Threshold</h3>
         <div className="absolute top-0 right-0">
           <Tooltip text={chartExplanation}>
             <InfoIcon />
@@ -54,13 +54,13 @@ export const MetricTrendsChart: React.FC<MetricTrendsChartProps> = ({ data, curr
               domain={[0, 1]}
               reversed={false}
               stroke="#9ca3af"
-              label={{ value: 'Threshold', position: 'insideBottom', offset: -20, fill: '#9ca3af', fontSize: 12 }}
+              label={{ value: 'Threshold', position: 'insideBottom', offset: -20, fill: '#9ca3af', fontSize: 14 }}
             />
             <YAxis
               type="number"
               domain={[0, 1]}
               stroke="#9ca3af"
-              label={{ value: 'Metric Value', angle: -90, position: 'insideLeft', offset: -10, fill: '#9ca3af', fontSize: 12 }}
+              label={{ value: 'Metric Value', angle: -90, position: 'center', dx: -15, fill: '#9ca3af', fontSize: 14, style: { textAnchor: 'middle' } }}
             />
             <RechartsTooltip content={<CustomTooltip />} cursor={{ stroke: '#a5b4fc', strokeWidth: 1, strokeDasharray: '3 3' }} />
             <Legend verticalAlign="top" />

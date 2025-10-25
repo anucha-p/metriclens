@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import type { ConfusionMatrixValues } from '../types';
 
@@ -27,9 +26,12 @@ const Cell: React.FC<CellProps> = ({ label, value, percentage, colorClass, previ
       return () => clearTimeout(timer);
     }
   }, [value, previousValue]);
+
+  // Conditionally apply transition for smooth hover, but disable it during animations to prevent conflicts.
+  const transitionClass = !(isAnimating || isHighlighted) ? 'transition-all duration-300' : '';
   
   return (
-    <div className={`relative group p-4 rounded-lg flex flex-col items-center justify-center transition-all duration-300 ${colorClass} border border-gray-900/50 h-full hover:scale-105 hover:brightness-125 ${isAnimating ? 'animate-pulse-cell' : ''} ${isHighlighted ? 'animate-pulse-cell-infinite' : ''}`}>
+    <div className={`relative group p-4 rounded-lg flex flex-col items-center justify-center ${colorClass} border border-gray-900/50 h-full hover:scale-105 hover:brightness-125 ${transitionClass} ${isAnimating ? 'animate-pulse-cell' : ''} ${isHighlighted ? 'animate-pulse-cell-infinite' : ''}`}>
       <div className="text-lg font-bold text-white uppercase tracking-wider">{label}</div>
       <div className="text-4xl font-extrabold text-white my-1">{value}</div>
       <div className="text-sm text-gray-300">{percentage.toFixed(1)}%</div>

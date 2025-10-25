@@ -33,7 +33,7 @@ export const EducationalCallouts: React.FC<EducationalCalloutsProps> = ({ metric
     return (
         <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6 animate-fade-in">
             <div className="flex justify-center items-center">
-                <h3 className="text-lg font-bold text-white">💡 Understanding Your Results</h3>
+                <h3 className="text-lg font-bold text-white">Understanding Your Results</h3>
             </div>
 
             <div className="mt-4 space-y-4 text-gray-300">

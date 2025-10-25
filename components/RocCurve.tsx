@@ -14,6 +14,12 @@ const MODEL_COLORS: Record<ModelType, string> = {
     'conservative': '#f472b6', // pink-400
 };
 
+const MODEL_DISPLAY_NAMES: Record<ModelType, string> = {
+    'high-performance': 'High Performance',
+    'balanced': 'Balanced',
+    'conservative': 'Conservative',
+};
+
 const CustomTooltip: React.FC<any> = ({ active, payload, allCurves }) => {
   if (active && payload && payload.length && allCurves) {
     const activePayload = payload[0].payload;
@@ -41,7 +47,7 @@ const CustomTooltip: React.FC<any> = ({ active, payload, allCurves }) => {
           const specificity = 1 - point.fpr;
           return (
             <div key={modelType} className="mt-1">
-              <p style={{ color: MODEL_COLORS[modelType] }} className="font-semibold capitalize">{modelType.replace('-', ' ')}</p>
+              <p style={{ color: MODEL_COLORS[modelType] }} className="font-semibold">{MODEL_DISPLAY_NAMES[modelType]}</p>
               <ul className="list-disc list-inside text-xs pl-2 text-gray-300">
                 <li>TPR (Sensitivity): <span className="font-medium text-white">{point.tpr.toFixed(3)}</span></li>
                 <li>Specificity: <span className="font-medium text-white">{specificity.toFixed(3)}</span></li>
@@ -63,7 +69,8 @@ const InfoIcon = () => (
 );
 
 export const RocCurve: React.FC<RocCurveProps> = ({ curves, currentPoint }) => {
-  const title = curves.length > 1 ? 'ROC Curves Comparison' : 'ROC Curve';
+  const isComparison = curves.length > 1;
+  const title = isComparison ? 'ROC Curves Comparison' : 'ROC Curve';
   const rocExplanation = "The Receiver Operating Characteristic (ROC) curve shows the trade-off between the True Positive Rate (Sensitivity) and the False Positive Rate (1 - Specificity) at various threshold settings. An ideal model has a curve that hugs the top-left corner, indicating high sensitivity and high specificity. The diagonal line represents a random guess.";
   
   const randomGuessData = [{ fpr: 0, tpr: 0 }, { fpr: 1, tpr: 1 }];
@@ -81,20 +88,30 @@ export const RocCurve: React.FC<RocCurveProps> = ({ curves, currentPoint }) => {
       <div className="flex-grow min-h-0">
         <ResponsiveContainer width="100%" height="90%">
           <AreaChart margin={{ top: 5, right: 20, left: 25, bottom: 45 }}>
+            {!isComparison && (
+              <defs>
+                {curves.map(({ modelType }) => (
+                  <linearGradient key={`roc-${modelType}`} id={`roc-gradient-${modelType}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={MODEL_COLORS[modelType]} stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor={MODEL_COLORS[modelType]} stopOpacity={0.1}/>
+                  </linearGradient>
+                ))}
+              </defs>
+            )}
             <CartesianGrid strokeDasharray="3 3" stroke="#4b5563" />
             <XAxis
               dataKey="fpr"
               type="number"
               domain={[0, 1]}
               stroke="#9ca3af"
-              label={{ value: 'False Positive Rate (1 - Specificity)', position: 'insideBottom', offset: -35, fill: '#9ca3af', fontSize: 12 }}
+              label={{ value: 'False Positive Rate (1 - Specificity)', position: 'insideBottom', offset: -35, fill: '#9ca3af', fontSize: 14 }}
             />
             <YAxis
               dataKey="tpr"
               type="number"
               domain={[0, 1]}
               stroke="#9ca3af"
-              label={{ value: 'True Positive Rate (Recall)', angle: -90, position: 'insideLeft', offset: -10, fill: '#9ca3af', fontSize: 12 }}
+              label={{ value: 'True Positive Rate (Recall)', angle: -90, position: 'center', dx: -15, fill: '#9ca3af', fontSize: 14, style: { textAnchor: 'middle' } }}
             />
             <RechartsTooltip content={<CustomTooltip allCurves={curves} />} cursor={{ stroke: '#a5b4fc', strokeWidth: 1, strokeDasharray: '3 3' }} />
             <Legend verticalAlign="top" align="right" iconType="plainline" />
@@ -107,10 +124,10 @@ export const RocCurve: React.FC<RocCurveProps> = ({ curves, currentPoint }) => {
                 type="step"
                 data={data}
                 dataKey="tpr"
-                name={modelType.replace('-', ' ')}
+                name={MODEL_DISPLAY_NAMES[modelType]}
                 stroke={MODEL_COLORS[modelType]}
-                fill={MODEL_COLORS[modelType]}
-                fillOpacity={curves.length > 1 ? 0.2 : 0.4}
+                fill={isComparison ? MODEL_COLORS[modelType] : `url(#roc-gradient-${modelType})`}
+                fillOpacity={isComparison ? 0.25 : 1}
                 strokeWidth={2}
                 dot={false}
                 activeDot={false}
@@ -120,7 +137,6 @@ export const RocCurve: React.FC<RocCurveProps> = ({ curves, currentPoint }) => {
             {/* Current Point Markers for Primary Model */}
             <ReferenceLine x={currentPoint.fpr} stroke="#fca5a5" strokeDasharray="4 4" />
             <ReferenceLine y={currentPoint.tpr} stroke="#fca5a5" strokeDasharray="4 4" />
-            {/* FIX: Removed 'isFront' prop as it is not supported by the ReferenceDot component's props type. */}
             <ReferenceDot
               x={currentPoint.fpr}
               y={currentPoint.tpr}

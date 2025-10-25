@@ -11,8 +11,14 @@ interface PrecisionRecallCurveProps {
 
 const MODEL_COLORS: Record<ModelType, string> = {
     'high-performance': '#4ade80', // green-400
-    'balanced': '#2dd4bf', // teal-400
+    'balanced': '#818cf8', // indigo-400
     'conservative': '#f472b6', // pink-400
+};
+
+const MODEL_DISPLAY_NAMES: Record<ModelType, string> = {
+    'high-performance': 'High Performance',
+    'balanced': 'Balanced',
+    'conservative': 'Conservative',
 };
 
 const CustomTooltip: React.FC<any> = ({ active, payload, allCurves }) => {
@@ -41,7 +47,7 @@ const CustomTooltip: React.FC<any> = ({ active, payload, allCurves }) => {
           if (!point) return null;
           return (
             <div key={modelType} className="mt-1">
-              <p style={{ color: MODEL_COLORS[modelType] }} className="font-semibold capitalize">{modelType.replace('-', ' ')}</p>
+              <p style={{ color: MODEL_COLORS[modelType] }} className="font-semibold">{MODEL_DISPLAY_NAMES[modelType]}</p>
               <ul className="list-disc list-inside text-xs pl-2 text-gray-300">
                 <li>Precision: <span className="font-medium text-white">{point.precision.toFixed(3)}</span></li>
                 {point.threshold !== undefined && (
@@ -64,7 +70,8 @@ const InfoIcon = () => (
 );
 
 export const PrecisionRecallCurve: React.FC<PrecisionRecallCurveProps> = ({ curves, currentPoint, f1IsoLines }) => {
-  const title = curves.length > 1 ? 'Precision-Recall Curves Comparison' : 'Precision-Recall Curve';
+  const isComparison = curves.length > 1;
+  const title = isComparison ? 'Precision-Recall Curves Comparison' : 'Precision-Recall Curve';
   const prExplanation = "The Precision-Recall (PR) curve illustrates the trade-off between Precision and Recall for different thresholds. It is particularly useful for imbalanced datasets. An ideal model has a curve that reaches the top-right corner, representing high precision and high recall. The F1-Score isolines show points with the same F1-score.";
 
   return (
@@ -80,20 +87,30 @@ export const PrecisionRecallCurve: React.FC<PrecisionRecallCurveProps> = ({ curv
       <div className="flex-grow min-h-0">
         <ResponsiveContainer width="100%" height="90%">
           <AreaChart margin={{ top: 5, right: 20, left: 25, bottom: 45 }}>
+            {!isComparison && (
+                <defs>
+                  {curves.map(({ modelType }) => (
+                    <linearGradient key={`pr-${modelType}`} id={`pr-gradient-${modelType}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={MODEL_COLORS[modelType]} stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor={MODEL_COLORS[modelType]} stopOpacity={0.1}/>
+                    </linearGradient>
+                  ))}
+                </defs>
+            )}
             <CartesianGrid strokeDasharray="3 3" stroke="#4b5563" />
             <XAxis
               dataKey="recall"
               type="number"
               domain={[0, 1]}
               stroke="#9ca3af"
-              label={{ value: 'Recall (TPR)', position: 'insideBottom', offset: -35, fill: '#9ca3af', fontSize: 12 }}
+              label={{ value: 'Recall (TPR)', position: 'insideBottom', offset: -35, fill: '#9ca3af', fontSize: 14 }}
             />
             <YAxis
               dataKey="precision"
               type="number"
               domain={[0, 1]}
               stroke="#9ca3af"
-              label={{ value: 'Precision', angle: -90, position: 'insideLeft', offset: -10, fill: '#9ca3af', fontSize: 12 }}
+              label={{ value: 'Precision', angle: -90, position: 'center', dx: -15, fill: '#9ca3af', fontSize: 14, style: { textAnchor: 'middle' } }}
             />
             <RechartsTooltip content={<CustomTooltip allCurves={curves} />} cursor={{ stroke: '#a5b4fc', strokeWidth: 1, strokeDasharray: '3 3' }} />
             <Legend verticalAlign="top" align="right" iconType="plainline" />
@@ -119,10 +136,10 @@ export const PrecisionRecallCurve: React.FC<PrecisionRecallCurveProps> = ({ curv
                 type="step"
                 data={data}
                 dataKey="precision"
-                name={modelType.replace('-', ' ')}
+                name={MODEL_DISPLAY_NAMES[modelType]}
                 stroke={MODEL_COLORS[modelType]}
-                fill={MODEL_COLORS[modelType]}
-                fillOpacity={curves.length > 1 ? 0.2 : 0.4}
+                fill={isComparison ? MODEL_COLORS[modelType] : `url(#pr-gradient-${modelType})`}
+                fillOpacity={isComparison ? 0.25 : 1}
                 strokeWidth={2}
                 dot={false}
                 activeDot={false}
@@ -132,7 +149,6 @@ export const PrecisionRecallCurve: React.FC<PrecisionRecallCurveProps> = ({ curv
             {/* Current Point Markers for Primary Model */}
             <ReferenceLine x={currentPoint.recall} stroke="#fca5a5" strokeDasharray="4 4" />
             <ReferenceLine y={currentPoint.precision} stroke="#fca5a5" strokeDasharray="4 4" />
-            {/* FIX: Removed 'isFront' prop as it is not supported by the ReferenceDot component's props type. */}
             <ReferenceDot
               x={currentPoint.recall}
               y={currentPoint.precision}
